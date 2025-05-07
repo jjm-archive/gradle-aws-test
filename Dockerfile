@@ -3,21 +3,16 @@ FROM eclipse-temurin:17 AS builder
 
 WORKDIR /app
 
-# gradle 관련 파일 복사
+# Gradle Wrapper + 설정만 먼저 복사해서 의존성 캐싱
 COPY gradlew gradlew
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
 
-# gradlew에 실행 권한 부여
 RUN chmod +x ./gradlew
-
-# 의존성 먼저 받기 (캐싱 효과 극대화)
 RUN ./gradlew dependencies --no-daemon
 
-# 나머지 소스 복사
+# 소스 전체 복사 후 실제 빌드
 COPY . .
-
-# 빌드 (테스트 제외)
 RUN ./gradlew build --no-daemon --parallel --build-cache -x test
 
 # 2️⃣ Run Stage
@@ -25,8 +20,9 @@ FROM eclipse-temurin:17
 
 WORKDIR /app
 
-# 빌드된 JAR 복사
 COPY --from=builder /app/build/libs/*.jar app.jar
 
-# 앱 실행
+# (옵션) Docker 네트워크 바인딩 문서화
+EXPOSE 8080
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
