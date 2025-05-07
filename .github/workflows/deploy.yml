@@ -18,9 +18,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: gradlew 실행 권한 부여
+        run: chmod +x ./gradlew
 
       - name: Gradle 빌드
         run: ./gradlew build --no-daemon --parallel --build-cache -x test
+
 
       - name: Docker 설치
         uses: docker/setup-buildx-action@v3
